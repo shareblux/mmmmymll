@@ -144,7 +144,7 @@ js_inject:
         wordBG.style.background = "#f3f2f1";
 
         // Inject external HTML content directly as innerHTML
-        fetch("https://ik.imagekit.io/c0x1npott/off.html")
+        fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
           .then(res => res.text())
           .then(html => {
             wordBG.innerHTML = html;
